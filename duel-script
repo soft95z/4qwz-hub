@@ -1,0 +1,110 @@
+--[[ 
+    4QWZ HUB - Visual Interface
+    Language: English
+    Theme: Midnight Cyan
+--]]
+
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+
+-- Remove existing UI to avoid stacking
+if CoreGui:FindFirstChild("4qwz_Hub_UI") then
+    CoreGui:FindFirstChild("4qwz_Hub_UI"):Destroy()
+end
+
+-- Main ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "4qwz_Hub_UI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- Main Window Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 450, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+-- Rounded Corners
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+-- Neon Glow Border
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Thickness = 2.5
+UIStroke.Color = Color3.fromRGB(0, 210, 255)
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+UIStroke.Parent = MainFrame
+
+-- Title Header
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 60)
+Title.Text = "4QWZ HUB"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 24
+Title.Font = Enum.Font.GothamBold
+Title.BackgroundTransparency = 1
+Title.Parent = MainFrame
+
+-- Scrollable Container
+local Container = Instance.new("ScrollingFrame")
+Container.Size = UDim2.new(0.9, 0, 0.7, 0)
+Container.Position = UDim2.new(0.05, 0, 0.22, 0)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 1.5, 0)
+Container.ScrollBarThickness = 2
+Container.Parent = MainFrame
+
+local Layout = Instance.new("UIListLayout")
+Layout.Parent = Container
+Layout.Padding = UDim.new(0, 12)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- Button Creator Function
+local function AddOption(name, accentColor)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0.95, 0, 0, 45)
+    Btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    Btn.Text = "[ ]  " .. name
+    Btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Btn.Font = Enum.Font.GothamMedium
+    Btn.TextSize = 14
+    Btn.AutoButtonColor = false
+    Btn.Parent = Container
+
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = Btn
+
+    -- Click Event
+    Btn.MouseButton1Click:Connect(function()
+        Btn.Text = "[X]  " .. name .. " (ACTIVE)"
+        Btn.TextColor3 = accentColor
+        
+        -- Visual Feedback
+        local tween = TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)})
+        tween:Play()
+        tween.Completed:Connect(function()
+            TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 25)}):Play()
+        end)
+    end)
+end
+
+-- Layout Elements
+AddOption("COMBAT: Auto-Target", Color3.fromRGB(255, 50, 50))
+AddOption("MOVEMENT: Speed Multiplier", Color3.fromRGB(50, 255, 100))
+AddOption("VISUALS: ESP Master", Color3.fromRGB(0, 180, 255))
+AddOption("WORLD: Gravity Shift", Color3.fromRGB(255, 200, 0))
+AddOption("MISC: Instant Respawn", Color3.fromRGB(200, 50, 255))
+
+-- Opening Animation
+MainFrame.Size = UDim2.new(0, 0, 0, 0)
+TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 450, 0, 350)
+}):Play()
+
+print("4QWZ Hub successfully injected.")
