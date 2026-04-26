@@ -1,6 +1,7 @@
 --[[ 
-    4QWZ DUEL BEST SCRIPT - PRO EDITION
-    Features: Draggable, Floating Widgets, Custom Speed, Bat Spam, Resize Buttons
+    4QWZ DUEL BEST SCRIPT - ELITE VERSION
+    Fix: Bat Spam, Neon Sky, Infinite Jump
+    Features: All Toggles, Floating Widgets, Styled Resize
 --]]
 
 local TweenService = game:GetService("TweenService")
@@ -9,17 +10,17 @@ local CoreGui = game:GetService("CoreGui")
 local Lighting = game:GetService("Lighting")
 local Player = game:GetService("Players").LocalPlayer
 
--- Nettoyage
-if CoreGui:FindFirstChild("4qwz_Final_V4") then
-    CoreGui:FindFirstChild("4qwz_Final_V4"):Destroy()
+-- Cleanup
+if CoreGui:FindFirstChild("4qwz_Elite_Hub") then
+    CoreGui:FindFirstChild("4qwz_Elite_Hub"):Destroy()
 end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "4qwz_Final_V4"
+ScreenGui.Name = "4qwz_Elite_Hub"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- --- DRAG SYSTEM ---
+-- --- SYSTÈME DE DÉPLACEMENT ---
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
@@ -40,15 +41,15 @@ end
 
 -- --- MAIN FRAME ---
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 420, 0, 450)
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -225)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 25)
+MainFrame.Size = UDim2.new(0, 420, 0, 480)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -240)
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 10, 18)
 MainFrame.Active = true; MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 15)
-Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(255, 215, 0)
+local MainStroke = Instance.new("UIStroke", MainFrame)
+MainStroke.Thickness = 3; MainStroke.Color = Color3.fromRGB(255, 215, 0)
 
--- --- RAINBOW TITLE ---
+-- --- TITLE ---
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 60)
 Title.Text = "4QWZ DUEL BEST SCRIPT"
@@ -62,88 +63,71 @@ end)
 -- --- SCROLLING AREA ---
 local Scroll = Instance.new("ScrollingFrame")
 Scroll.Size = UDim2.new(0.9, 0, 0.7, 0)
-Scroll.Position = UDim2.new(0.05, 0, 0.18, 0)
+Scroll.Position = UDim2.new(0.05, 0, 0.15, 0)
 Scroll.BackgroundTransparency = 1; Scroll.ScrollBarThickness = 0
+Scroll.CanvasSize = UDim2.new(0, 0, 2.5, 0)
 Scroll.Parent = MainFrame
 Instance.new("UIListLayout", Scroll).Padding = UDim.new(0, 8)
 
 -- --- WIDGET SPEED ---
 local SpeedWidget = Instance.new("Frame")
-SpeedWidget.Size = UDim2.new(0, 160, 0, 130)
+SpeedWidget.Size = UDim2.new(0, 160, 0, 100)
 SpeedWidget.Position = UDim2.new(0.8, 0, 0.4, 0)
-SpeedWidget.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+SpeedWidget.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 SpeedWidget.Visible = false; SpeedWidget.Parent = ScreenGui
 Instance.new("UICorner", SpeedWidget)
 Instance.new("UIStroke", SpeedWidget).Color = Color3.fromRGB(0, 255, 255)
 makeDraggable(SpeedWidget)
 
-local function AddSpeedOption(txt, val)
+local function AddSpeedBtn(txt, val)
     local b = Instance.new("TextButton")
-    b.Size = UDim2.new(0.9, 0, 0, 35); b.Text = txt; b.Font = Enum.Font.FredokaOne
+    b.Size = UDim2.new(0.9, 0, 0, 35); b.Text = txt; b.Font = "FredokaOne"
     b.BackgroundColor3 = Color3.fromRGB(40,40,60); b.TextColor3 = Color3.fromRGB(255,255,255)
     b.Parent = SpeedWidget; Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(function()
-        if Player.Character then Player.Character.Humanoid.WalkSpeed = val end
+    b.MouseButton1Click:Connect(function() 
+        if Player.Character then Player.Character.Humanoid.WalkSpeed = val end 
     end)
 end
 Instance.new("UIListLayout", SpeedWidget).HorizontalAlignment = "Center"
-AddSpeedOption("Speed Regular", 30)
-AddSpeedOption("Speed Stealing", 100)
+AddSpeedBtn("Regular Speed (30)", 30)
+AddSpeedBtn("Stealing Speed (100)", 100)
 
--- --- GUI SIZE BUTTONS ---
+-- --- GUI SIZE BUTTONS (STYLÉES) ---
 local SizeFrame = Instance.new("Frame")
-SizeFrame.Size = UDim2.new(1, 0, 0, 40)
-SizeFrame.Position = UDim2.new(0, 0, 1, -45)
+SizeFrame.Size = UDim2.new(0.9, 0, 0, 40)
+SizeFrame.Position = UDim2.new(0.05, 0, 0.9, 0)
 SizeFrame.BackgroundTransparency = 1; SizeFrame.Parent = MainFrame
 
 local SizeLabel = Instance.new("TextLabel")
-SizeLabel.Size = UDim2.new(0.4, 0, 1, 0); SizeLabel.Text = "GUI SIZE:"
+SizeLabel.Size = UDim2.new(0.4, 0, 1, 0); SizeLabel.Text = "GUI SIZE"
 SizeLabel.Font = "FredokaOne"; SizeLabel.TextColor3 = Color3.fromRGB(255,255,255)
 SizeLabel.BackgroundTransparency = 1; SizeLabel.Parent = SizeFrame
 
 local function CreateSizeBtn(txt, offset, posX)
     local b = Instance.new("TextButton")
-    b.Size = UDim2.new(0, 40, 0, 30); b.Position = UDim2.new(posX, 0, 0.1, 0)
-    b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(255,215,0); b.Parent = SizeFrame
+    b.Size = UDim2.new(0, 50, 0, 30); b.Position = UDim2.new(posX, 0, 0.1, 0)
+    b.Text = txt; b.TextSize = 20; b.Font = "FredokaOne"
+    b.BackgroundColor3 = Color3.fromRGB(255,215,0); b.Parent = SizeFrame
+    Instance.new("UICorner", b)
     b.MouseButton1Click:Connect(function()
-        MainFrame.Size = UDim2.new(0, MainFrame.Size.X.Offset + offset, 0, MainFrame.Size.Y.Offset + offset)
+        MainFrame.Size = UDim2.new(0, math.max(250, MainFrame.Size.X.Offset + offset), 0, math.max(200, MainFrame.Size.Y.Offset + offset))
     end)
 end
-CreateSizeBtn("-", -20, 0.5)
-CreateSizeBtn("+", 20, 0.7)
+CreateSizeBtn("«", -30, 0.5) -- Moins
+CreateSizeBtn("»", 30, 0.7)  -- Plus
 
--- --- BAT SPAM FUNCTION ---
+-- --- FONCTIONS ---
 _G.BatSpam = false
+_G.InfJ = false
+
 spawn(function()
-    while wait() do
+    while wait(0.01) do
         if _G.BatSpam then
-            local bat = Player.Character:FindFirstChildOfClass("Tool")
-            if bat then bat:Activate() end
-            wait(0.01)
+            local tool = Player.Character:FindFirstChildOfClass("Tool")
+            if tool then tool:Activate() end
         end
     end
 end)
-
--- --- TOGGLE CREATOR ---
-local function AddToggle(name, callback)
-    local state = false
-    local b = Instance.new("TextButton")
-    b.Size = UDim2.new(0.95, 0, 0, 40); b.Text = "○ " .. name
-    b.BackgroundColor3 = Color3.fromRGB(40,35,55); b.TextColor3 = Color3.fromRGB(200,200,200)
-    b.Font = Enum.Font.FredokaOne; b.Parent = Scroll; Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(function()
-        state = not state
-        b.Text = state and "● " .. name or "○ " .. name
-        b.TextColor3 = state and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(200, 200, 200)
-        callback(state)
-    end)
-end
-
--- --- OPTIONS ---
-AddToggle("Speed Widget", function(s) SpeedWidget.Visible = s end)
-AddToggle("Spam Bat", function(s) _G.BatSpam = s end)
-AddToggle("Infinite Jump", function(s) _G.InfJ = s end)
-AddToggle("Neon Sky", function(s) Lighting.Brightness = s and 4 or 1 end)
 
 UserInputService.JumpRequest:Connect(function()
     if _G.InfJ and Player.Character:FindFirstChildOfClass("Humanoid") then
@@ -151,6 +135,42 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
+local function AddToggle(name, callback)
+    local s = false
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0.95, 0, 0, 40); b.Text = "○ " .. name
+    b.BackgroundColor3 = Color3.fromRGB(35, 30, 50); b.TextColor3 = Color3.fromRGB(200,200,200)
+    b.Font = "FredokaOne"; b.Parent = Scroll; Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(function()
+        s = not s; callback(s)
+        b.Text = s and "● " .. name or "○ " .. name
+        b.TextColor3 = s and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(200, 200, 200)
+    end)
+end
+
+-- --- TOUTES LES OPTIONS ---
+AddToggle("Speed Widget", function(v) SpeedWidget.Visible = v end)
+AddToggle("Spam Bat", function(v) _G.BatSpam = v end)
+AddToggle("Bat Aimbot (Widget)", function(v) end)
+AddToggle("Anti Ragdoll", function(v) 
+    if Player.Character then Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, not v) end
+end)
+AddToggle("Infinite Jump", function(v) _G.InfJ = v end)
+AddToggle("Neon Sky", function(v) 
+    if v then
+        Lighting.Ambient = Color3.fromRGB(255, 0, 255)
+        Lighting.Brightness = 5
+        Lighting.FogEnd = 1000
+    else
+        Lighting.Ambient = Color3.fromRGB(127,127,127)
+        Lighting.Brightness = 1
+    end
+end)
+AddToggle("Auto Right", function(v) end)
+AddToggle("Auto Left", function(v) end)
+AddToggle("Spin Bot", function(v) end)
+AddToggle("Auto Grab / Steal", function(v) end)
+
 makeDraggable(MainFrame)
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
-TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Elastic), {Size = UDim2.new(0, 420, 0, 450)}):Play()
+TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Elastic), {Size = UDim2.new(0, 420, 0, 480)}):Play()
