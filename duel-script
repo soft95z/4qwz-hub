@@ -1,7 +1,7 @@
 --[[ 
-    4QWZ BEST DUEL SCRIPT - ULTIMATE V7
-    FIX: Spin while moving, Sticky Aimbot, Neon Sky, Auto Right/Left
-    DESIGN: Rainbow Widgets (Match Title)
+    4QWZ BEST DUEL SCRIPT - STEAL A BRAINROT EDITION
+    FIX: No Auto-Respawn, Tool Auto-Equip, Optimized Auto-Grab
+    DESIGN: Rainbow UI, Persistent Widgets
 --]]
 
 local TweenService = game:GetService("TweenService")
@@ -12,11 +12,11 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
 
--- Nettoyage
-if CoreGui:FindFirstChild("4qwz_V7_Elite") then CoreGui:FindFirstChild("4qwz_V7_Elite"):Destroy() end
+-- Cleanup
+if CoreGui:FindFirstChild("4qwz_Brainrot_V9") then CoreGui:FindFirstChild("4qwz_Brainrot_V9"):Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "4qwz_V7_Elite"
+ScreenGui.Name = "4qwz_Brainrot_V9"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
@@ -43,12 +43,10 @@ local function applyRainbow(instance)
     task.spawn(function()
         while task.wait() do
             for i = 0, 1, 0.01 do
-                if instance:IsA("TextLabel") or instance:IsA("TextButton") then
-                    instance.TextColor3 = Color3.fromHSV(i, 0.7, 1)
-                elseif instance:IsA("UIStroke") then
-                    instance.Color = Color3.fromHSV(i, 0.7, 1)
-                end
-                task.wait(0.04)
+                local col = Color3.fromHSV(i, 0.8, 1)
+                if instance:IsA("TextLabel") or instance:IsA("TextButton") then instance.TextColor3 = col
+                elseif instance:IsA("UIStroke") then instance.Color = col end
+                task.wait(0.03)
             end
         end
     end)
@@ -73,14 +71,12 @@ Instance.new("UIListLayout", Scroll).Padding = UDim.new(0, 8)
 -- --- WIDGET CREATOR ---
 local function CreateWidget(name, sizeX, sizeY)
     local W = Instance.new("Frame")
-    W.Size = UDim2.new(0, sizeX, 0, sizeY); W.Position = UDim2.new(0.1, 0, 0.1, 0)
-    W.BackgroundColor3 = Color3.fromRGB(15, 15, 20); W.Visible = false; W.Active = true; W.Parent = ScreenGui
+    W.Size = UDim2.new(0, sizeX, 0, sizeY); W.Position = UDim2.new(0.75, 0, 0.3, 0)
+    W.BackgroundColor3 = Color3.fromRGB(15, 15, 25); W.Visible = false; W.Parent = ScreenGui
     Instance.new("UICorner", W); local S = Instance.new("UIStroke", W); S.Thickness = 2; applyRainbow(S)
     makeDraggable(W)
-    
     local T = Instance.new("TextLabel")
-    T.Size = UDim2.new(1, 0, 0, 30); T.Text = name; T.Font = "FredokaOne"; T.BackgroundTransparency = 1; T.Parent = W
-    applyRainbow(T)
+    T.Size = UDim2.new(1, 0, 0, 30); T.Text = name; T.Font = "FredokaOne"; T.BackgroundTransparency = 1; T.Parent = W; applyRainbow(T)
     return W
 end
 
@@ -90,104 +86,115 @@ local AimWidget = CreateWidget("BAT AIMBOT", 180, 100)
 local RightWidget = CreateWidget("AUTO RIGHT", 150, 80)
 local LeftWidget = CreateWidget("AUTO LEFT", 150, 80)
 
--- Speed Content
-local function AddSpeedSet(label, default, pos)
-    local box = Instance.new("TextBox")
-    box.Size = UDim2.new(0.6, 0, 0, 30); box.Position = UDim2.new(0.05, 0, pos, 0); box.Text = default
-    box.BackgroundColor3 = Color3.fromRGB(30,30,40); box.TextColor3 = Color3.fromRGB(255,255,255); box.Parent = SpeedWidget; Instance.new("UICorner", box)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.25, 0, 0, 30); btn.Position = UDim2.new(0.7, 0, pos, 0); btn.Text = "SET"; btn.Parent = SpeedWidget; Instance.new("UICorner", btn)
-    btn.MouseButton1Click:Connect(function() _G.CustomSpeed = tonumber(box.Text) or 16 end)
+-- Contenu Widgets
+local function AddWContent(w, t)
+    local l = Instance.new("TextLabel")
+    l.Size = UDim2.new(1,0,0,30); l.Position = UDim2.new(0,0,0.5,0); l.Text = t; l.TextColor3 = Color3.fromRGB(255,255,255); l.BackgroundTransparency = 1; l.Parent = w
 end
-AddSpeedSet("REGULAR", "30", 0.25); AddSpeedSet("STEAL", "100", 0.6)
+AddWContent(RightWidget, "ACTIVE")
+AddWContent(LeftWidget, "ACTIVE")
+AddWContent(AimWidget, "TARGETING...")
 
--- Aim Content
-local AimStateBtn = Instance.new("TextButton")
-AimStateBtn.Size = UDim2.new(0.9, 0, 0, 40); AimStateBtn.Position = UDim2.new(0.05, 0, 0.45, 0); AimStateBtn.Text = "ACTIVATE"
-AimStateBtn.Parent = AimWidget; Instance.new("UICorner", AimStateBtn)
+-- Speed Section
+local _G_Speed = 16
+local function SpeedIn(pos)
+    local b = Instance.new("TextBox")
+    b.Size = UDim2.new(0.8,0,0,30); b.Position = UDim2.new(0.1,0,pos,0); b.PlaceholderText = "Speed..."; b.Text = "16"
+    b.BackgroundColor3 = Color3.fromRGB(30,30,45); b.TextColor3 = Color3.fromRGB(255,255,255); b.Parent = SpeedWidget
+    b.FocusLost:Connect(function() _G_Speed = tonumber(b.Text) or 16 end)
+end
+SpeedIn(0.3); SpeedIn(0.65)
 
--- --- LOGIC ---
-_G.InfJ = false; _G.Spin = false; _G.Aim = false; _G.Neon = false; _G.Spam = false; _G.AntiRag = false; _G.CustomSpeed = 16
-
-AimStateBtn.MouseButton1Click:Connect(function() _G.Aim = not _G.Aim; AimStateBtn.Text = _G.Aim and "ON" or "OFF" end)
+-- --- CORE LOGIC ---
+_G.InfJ = false; _G.Spin = false; _G.Aim = false; _G.Neon = false; _G.Spam = false; _G.AntiRag = false; _G.Grab = false
 
 RunService.Heartbeat:Connect(function()
-    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = Player.Character.HumanoidRootPart
-        local hum = Player.Character.Humanoid
-        
-        -- Speed Force
-        hum.WalkSpeed = _G.CustomSpeed
-        
-        -- Spin Bot Fix (Marche en marchant)
-        if _G.Spin then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0) end
-        
-        -- Aimbot Sticky
-        if _G.Aim then
-            local target = nil; local dist = 30
-            for _, p in pairs(Players:GetPlayers()) do
-                if p ~= Player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character.Humanoid.Health > 0 then
-                    local d = (p.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                    if d < dist then dist = d; target = p.Character end
-                end
-            end
-            if target then
-                hrp.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
-                local tool = Player.Character:FindFirstChildOfClass("Tool") or Player.Backpack:FindFirstChildOfClass("Tool")
-                if tool then 
-                    if tool.Parent ~= Player.Character then hum:EquipTool(tool) end
-                    tool:Activate() 
-                end
-            end
-        end
+    local char = Player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
+    local hum = char.Humanoid
+    
+    -- Speed Force (Anti-Slow)
+    hum.WalkSpeed = _G_Speed
+    
+    -- Spin Bot (CFrame based to prevent reset)
+    if _G.Spin then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0) end
+    
+    -- Anti-Ragdoll (Logic Only)
+    if _G.AntiRag then
+        hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+        hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    end
 
-        -- Spam Bat
-        if _G.Spam and not _G.Aim then
-            local tool = Player.Character:FindFirstChildOfClass("Tool")
-            if tool then tool:Activate() end
+    -- Bat Spam & Aimbot (Auto-Equip)
+    if _G.Spam or _G.Aim then
+        local tool = char:FindFirstChildOfClass("Tool") or Player.Backpack:FindFirstChildOfClass("Tool")
+        if tool then
+            if tool.Parent ~= char then hum:EquipTool(tool) end
+            tool:Activate()
+            
+            if _G.Aim then
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= Player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        local d = (p.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                        if d < 25 then
+                            hrp.CFrame = CFrame.new(hrp.Position, Vector3.new(p.Character.HumanoidRootPart.Position.X, hrp.Position.Y, p.Character.HumanoidRootPart.Position.Z))
+                        end
+                    end
+                end
+            end
         end
     end
-    
-    if _G.Neon then 
-        Lighting.Ambient = Color3.fromRGB(40, 0, 80)
-        Lighting.OutdoorAmbient = Color3.fromRGB(20, 0, 40)
-        Lighting.Brightness = 2
+
+    -- Auto Grab Brainrot (Optimized for Duel)
+    if _G.Grab then
+        for _, v in pairs(workspace:GetDescendants()) do
+            if (v:IsA("TouchTransmitter") or v.Name == "Handle") and v.Parent:IsA("Tool") then
+                firetouchinterest(hrp, v.Parent:FindFirstChild("Handle") or v.Parent, 0)
+                firetouchinterest(hrp, v.Parent:FindFirstChild("Handle") or v.Parent, 1)
+            end
+        end
     end
 end)
 
--- Infinite Jump
+-- Safe Jump
 UserInputService.JumpRequest:Connect(function()
     if _G.InfJ and Player.Character then Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end
 end)
 
--- Anti-Ragdoll
+-- Neon Sky Force
 task.spawn(function()
-    while task.wait(0.1) do
-        if _G.AntiRag and Player.Character then
-            Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-            Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    while task.wait(1) do
+        if _G.Neon then 
+            Lighting.Ambient = Color3.fromRGB(30, 0, 60)
+            Lighting.OutdoorAmbient = Color3.fromRGB(15, 0, 30)
+            Lighting.ClockTime = 0
         end
     end
 end)
 
 -- --- TOGGLES ---
-local function AddToggle(name, callback)
+local function AddTog(name, callback)
     local s = false; local b = Instance.new("TextButton")
     b.Size = UDim2.new(0.95, 0, 0, 40); b.Text = "○ " .. name; b.Parent = Scroll
-    b.BackgroundColor3 = Color3.fromRGB(30, 25, 40); b.TextColor3 = Color3.fromRGB(200,200,200)
-    b.Font = "FredokaOne"; Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(function() s = not s; callback(s); b.Text = s and "● " .. name or "○ " .. name; b.TextColor3 = s and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(200, 200, 200) end)
+    b.BackgroundColor3 = Color3.fromRGB(30, 25, 40); b.TextColor3 = Color3.fromRGB(200,200,200); b.Font = "FredokaOne"
+    Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(function() 
+        s = not s; callback(s); b.Text = s and "● " .. name or "○ " .. name
+        b.TextColor3 = s and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(200, 200, 200)
+    end)
 end
 
-AddToggle("Speed Widget", function(v) SpeedWidget.Visible = v end)
-AddToggle("Bat Aimbot Widget", function(v) AimWidget.Visible = v end)
-AddToggle("Auto Right Widget", function(v) RightWidget.Visible = v end)
-AddToggle("Auto Left Widget", function(v) LeftWidget.Visible = v end)
-AddToggle("Anti Ragdoll", function(v) _G.AntiRag = v end)
-AddToggle("Infinite Jump", function(v) _G.InfJ = v end)
-AddToggle("Spin Bot", function(v) _G.Spin = v end)
-AddToggle("Dark Neon Sky", function(v) _G.Neon = v; if not v then Lighting.Ambient = Color3.fromRGB(127,127,127) end end)
-AddToggle("Spam Bat", function(v) _G.Spam = v end)
+AddTog("Speed Widget", function(v) SpeedWidget.Visible = v end)
+AddTog("Bat Aimbot Widget", function(v) AimWidget.Visible = v end)
+AddTog("Auto Right Widget", function(v) RightWidget.Visible = v end)
+AddTog("Auto Left Widget", function(v) LeftWidget.Visible = v end)
+AddTog("Auto Grab Brainrot", function(v) _G.Grab = v end)
+AddTog("Anti Ragdoll", function(v) _G.AntiRag = v end)
+AddTog("Infinite Jump", function(v) _G.InfJ = v end)
+AddTog("Spin Bot", function(v) _G.Spin = v end)
+AddTog("Dark Neon Sky", function(v) _G.Neon = v end)
+AddTog("Spam Bat", function(v) _G.Spam = v end)
 
 -- --- SIZE ---
 local SizeFrame = Instance.new("Frame")
