@@ -1,58 +1,66 @@
 --[[ 
-    4QWZ HUB - Draggable & Animated
-    Theme: Purple Neon & Gold
+    4QWZ HUB - DUEL BEST SCRIPT (FUN EDITION)
+    Theme: Purple, Gold & Rainbow Title
 --]]
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- Cleanup
-if CoreGui:FindFirstChild("4qwz_Hub_V2") then
-    CoreGui:FindFirstChild("4qwz_Hub_V2"):Destroy()
+if CoreGui:FindFirstChild("4qwz_Best_Script") then
+    CoreGui:FindFirstChild("4qwz_Best_Script"):Destroy()
 end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "4qwz_Hub_V2"
+ScreenGui.Name = "4qwz_Best_Script"
 ScreenGui.Parent = CoreGui
-ScreenGui.ResetOnSpawn = false
 
 -- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 420, 0, 300)
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -150)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 10, 20) -- Dark Purple
+MainFrame.Size = UDim2.new(0, 420, 0, 380)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -190)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 30)
 MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
-MainFrame.Active = true -- Required for dragging
+MainFrame.Active = true
 MainFrame.Parent = ScreenGui
 
 local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 15)
+Corner.CornerRadius = UDim.new(0, 20)
 Corner.Parent = MainFrame
 
 local Stroke = Instance.new("UIStroke")
-Stroke.Thickness = 3
-Stroke.Color = Color3.fromRGB(180, 150, 50) -- Gold Neon
+Stroke.Thickness = 4
+Stroke.Color = Color3.fromRGB(255, 215, 0)
 Stroke.Parent = MainFrame
 
--- Title
+-- Fun Animated Title
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 50)
-Title.Text = "4QWZ HUB - EXCLUSIVE"
-Title.TextColor3 = Color3.fromRGB(255, 215, 0) -- Gold
-Title.TextSize = 22
-Title.Font = Enum.Font.GothamBold
+Title.Size = UDim2.new(1, 0, 0, 70)
+Title.Text = "DUEL BEST SCRIPT"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 28
+Title.Font = Enum.Font.LuckiestGuy -- Police Fun
 Title.BackgroundTransparency = 1
 Title.Parent = MainFrame
 
+-- Effet Arc-en-ciel sur le titre
+spawn(function()
+    while wait() do
+        for i = 0, 1, 0.01 do
+            Title.TextColor3 = Color3.fromHSV(i, 0.8, 1)
+            wait(0.05)
+        end
+    end
+end)
+
 -- Scrolling Area
 local Scroll = Instance.new("ScrollingFrame")
-Scroll.Size = UDim2.new(0.9, 0, 0.7, 0)
+Scroll.Size = UDim2.new(0.9, 0, 0.75, 0)
 Scroll.Position = UDim2.new(0.05, 0, 0.22, 0)
 Scroll.BackgroundTransparency = 1
 Scroll.ScrollBarThickness = 0
+Scroll.CanvasSize = UDim2.new(0, 0, 1.5, 0)
 Scroll.Parent = MainFrame
 
 local Layout = Instance.new("UIListLayout")
@@ -60,7 +68,7 @@ Layout.Parent = Scroll
 Layout.Padding = UDim.new(0, 10)
 Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
--- Function for Draggable UI
+-- Draggable Logic
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
@@ -87,36 +95,53 @@ local function makeDraggable(frame)
         end
     end)
 end
-
 makeDraggable(MainFrame)
 
--- Button Function
-local function AddBtn(txt)
+-- Buttons with Fun Font
+local function AddOption(name)
+    local isEnabled = false
     local B = Instance.new("TextButton")
-    B.Size = UDim2.new(0.95, 0, 0, 40)
-    B.BackgroundColor3 = Color3.fromRGB(30, 20, 40)
-    B.Text = txt
+    B.Size = UDim2.new(0.95, 0, 0, 45)
+    B.BackgroundColor3 = Color3.fromRGB(40, 30, 60)
+    B.Text = "OFF ⮕ " .. name
     B.TextColor3 = Color3.fromRGB(200, 200, 200)
-    B.Font = Enum.Font.GothamMedium
+    B.Font = Enum.Font.FredokaOne -- Police Fun & Arrondie
+    B.TextSize = 16
     B.Parent = Scroll
-    Instance.new("UICorner", B).CornerRadius = UDim.new(0, 8)
     
+    Instance.new("UICorner", B).CornerRadius = UDim.new(0, 10)
+
     B.MouseButton1Click:Connect(function()
-        B.TextColor3 = Color3.fromRGB(180, 150, 50)
-        B.Text = "✔ " .. txt
+        isEnabled = not isEnabled
+        if isEnabled then
+            B.Text = "ON ⮕ " .. name
+            B.TextColor3 = Color3.fromRGB(255, 215, 0)
+            B.BackgroundColor3 = Color3.fromRGB(60, 40, 90)
+        else
+            B.Text = "OFF ⮕ " .. name
+            B.TextColor3 = Color3.fromRGB(200, 200, 200)
+            B.BackgroundColor3 = Color3.fromRGB(40, 30, 60)
+        end
+        
+        -- Bounce animation
+        B:TweenSize(UDim2.new(0.9, 0, 0, 40), "Out", "Quad", 0.1, true)
+        wait(0.1)
+        B:TweenSize(UDim2.new(0.95, 0, 0, 45), "Out", "Quad", 0.1, true)
     end)
 end
 
-AddBtn("Blade Combat")
-AddBtn("Velocity Boost")
-AddBtn("Vision ESP")
-AddBtn("Server Hop")
+AddOption("SPEED: Carry Mode")
+AddOption("SPEED: Turbo")
+AddOption("COMBAT: Anti Ragdoll")
+AddOption("COMBAT: Spin Bot")
+AddOption("GRAVITY: Moon Jump")
+AddOption("MISC: Auto Steal")
+AddOption("VISUALS: Neon Sky")
 
--- EXECUTION ANIMATION (Spin & Scale)
+-- FUN OPENING ANIMATION
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
-MainFrame.Rotation = 90
-local open = TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-    Size = UDim2.new(0, 420, 0, 300),
+MainFrame.Rotation = 180
+TweenService:Create(MainFrame, TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 420, 0, 380),
     Rotation = 0
-})
-open:Play()
+}):Play()
