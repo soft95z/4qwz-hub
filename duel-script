@@ -1,110 +1,122 @@
 --[[ 
-    4QWZ HUB - Visual Interface
-    Language: English
-    Theme: Midnight Cyan
+    4QWZ HUB - Draggable & Animated
+    Theme: Purple Neon & Gold
 --]]
 
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- Remove existing UI to avoid stacking
-if CoreGui:FindFirstChild("4qwz_Hub_UI") then
-    CoreGui:FindFirstChild("4qwz_Hub_UI"):Destroy()
+-- Cleanup
+if CoreGui:FindFirstChild("4qwz_Hub_V2") then
+    CoreGui:FindFirstChild("4qwz_Hub_V2"):Destroy()
 end
 
--- Main ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "4qwz_Hub_UI"
+ScreenGui.Name = "4qwz_Hub_V2"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- Main Window Frame
+-- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 450, 0, 350)
-MainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+MainFrame.Size = UDim2.new(0, 420, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -150)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 10, 20) -- Dark Purple
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
+MainFrame.Active = true -- Required for dragging
 MainFrame.Parent = ScreenGui
 
--- Rounded Corners
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 10)
-UICorner.Parent = MainFrame
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 15)
+Corner.Parent = MainFrame
 
--- Neon Glow Border
-local UIStroke = Instance.new("UIStroke")
-UIStroke.Thickness = 2.5
-UIStroke.Color = Color3.fromRGB(0, 210, 255)
-UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-UIStroke.Parent = MainFrame
+local Stroke = Instance.new("UIStroke")
+Stroke.Thickness = 3
+Stroke.Color = Color3.fromRGB(180, 150, 50) -- Gold Neon
+Stroke.Parent = MainFrame
 
--- Title Header
+-- Title
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 60)
-Title.Text = "4QWZ HUB"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 24
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.Text = "4QWZ HUB - EXCLUSIVE"
+Title.TextColor3 = Color3.fromRGB(255, 215, 0) -- Gold
+Title.TextSize = 22
 Title.Font = Enum.Font.GothamBold
 Title.BackgroundTransparency = 1
 Title.Parent = MainFrame
 
--- Scrollable Container
-local Container = Instance.new("ScrollingFrame")
-Container.Size = UDim2.new(0.9, 0, 0.7, 0)
-Container.Position = UDim2.new(0.05, 0, 0.22, 0)
-Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 1.5, 0)
-Container.ScrollBarThickness = 2
-Container.Parent = MainFrame
+-- Scrolling Area
+local Scroll = Instance.new("ScrollingFrame")
+Scroll.Size = UDim2.new(0.9, 0, 0.7, 0)
+Scroll.Position = UDim2.new(0.05, 0, 0.22, 0)
+Scroll.BackgroundTransparency = 1
+Scroll.ScrollBarThickness = 0
+Scroll.Parent = MainFrame
 
 local Layout = Instance.new("UIListLayout")
-Layout.Parent = Container
-Layout.Padding = UDim.new(0, 12)
+Layout.Parent = Scroll
+Layout.Padding = UDim.new(0, 10)
 Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
--- Button Creator Function
-local function AddOption(name, accentColor)
-    local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(0.95, 0, 0, 45)
-    Btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    Btn.Text = "[ ]  " .. name
-    Btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    Btn.Font = Enum.Font.GothamMedium
-    Btn.TextSize = 14
-    Btn.AutoButtonColor = false
-    Btn.Parent = Container
-
-    local BtnCorner = Instance.new("UICorner")
-    BtnCorner.CornerRadius = UDim.new(0, 6)
-    BtnCorner.Parent = Btn
-
-    -- Click Event
-    Btn.MouseButton1Click:Connect(function()
-        Btn.Text = "[X]  " .. name .. " (ACTIVE)"
-        Btn.TextColor3 = accentColor
-        
-        -- Visual Feedback
-        local tween = TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)})
-        tween:Play()
-        tween.Completed:Connect(function()
-            TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20, 20, 25)}):Play()
-        end)
+-- Function for Draggable UI
+local function makeDraggable(frame)
+    local dragging, dragInput, dragStart, startPos
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
     end)
 end
 
--- Layout Elements
-AddOption("COMBAT: Auto-Target", Color3.fromRGB(255, 50, 50))
-AddOption("MOVEMENT: Speed Multiplier", Color3.fromRGB(50, 255, 100))
-AddOption("VISUALS: ESP Master", Color3.fromRGB(0, 180, 255))
-AddOption("WORLD: Gravity Shift", Color3.fromRGB(255, 200, 0))
-AddOption("MISC: Instant Respawn", Color3.fromRGB(200, 50, 255))
+makeDraggable(MainFrame)
 
--- Opening Animation
+-- Button Function
+local function AddBtn(txt)
+    local B = Instance.new("TextButton")
+    B.Size = UDim2.new(0.95, 0, 0, 40)
+    B.BackgroundColor3 = Color3.fromRGB(30, 20, 40)
+    B.Text = txt
+    B.TextColor3 = Color3.fromRGB(200, 200, 200)
+    B.Font = Enum.Font.GothamMedium
+    B.Parent = Scroll
+    Instance.new("UICorner", B).CornerRadius = UDim.new(0, 8)
+    
+    B.MouseButton1Click:Connect(function()
+        B.TextColor3 = Color3.fromRGB(180, 150, 50)
+        B.Text = "✔ " .. txt
+    end)
+end
+
+AddBtn("Blade Combat")
+AddBtn("Velocity Boost")
+AddBtn("Vision ESP")
+AddBtn("Server Hop")
+
+-- EXECUTION ANIMATION (Spin & Scale)
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
-TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-    Size = UDim2.new(0, 450, 0, 350)
-}):Play()
-
-print("4QWZ Hub successfully injected.")
+MainFrame.Rotation = 90
+local open = TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 420, 0, 300),
+    Rotation = 0
+})
+open:Play()
