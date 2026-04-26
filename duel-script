@@ -1,26 +1,26 @@
 --[[ 
-    4QWZ DUEL BEST SCRIPT - ELITE VERSION
-    Fix: Bat Spam, Neon Sky, Infinite Jump
-    Features: All Toggles, Floating Widgets, Styled Resize
+    4QWZ DUEL BEST SCRIPT - AUTO-EQUIP & AIMBOT EDITION
+    Fix: Auto-Equip Tool, Aimbot Auto-Swing
 --]]
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local Lighting = game:GetService("Lighting")
-local Player = game:GetService("Players").LocalPlayer
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
 
 -- Cleanup
-if CoreGui:FindFirstChild("4qwz_Elite_Hub") then
-    CoreGui:FindFirstChild("4qwz_Elite_Hub"):Destroy()
+if CoreGui:FindFirstChild("4qwz_Final_Fixed") then
+    CoreGui:FindFirstChild("4qwz_Final_Fixed"):Destroy()
 end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "4qwz_Elite_Hub"
+ScreenGui.Name = "4qwz_Final_Fixed"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- --- SYSTÈME DE DÉPLACEMENT ---
+-- --- DRAG SYSTEM ---
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
     frame.InputBegan:Connect(function(input)
@@ -46,95 +46,167 @@ MainFrame.Position = UDim2.new(0.5, -210, 0.5, -240)
 MainFrame.BackgroundColor3 = Color3.fromRGB(12, 10, 18)
 MainFrame.Active = true; MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 15)
-local MainStroke = Instance.new("UIStroke", MainFrame)
-MainStroke.Thickness = 3; MainStroke.Color = Color3.fromRGB(255, 215, 0)
+Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(255, 215, 0)
 
 -- --- TITLE ---
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 60)
 Title.Text = "4QWZ DUEL BEST SCRIPT"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 24; Title.Font = Enum.Font.LuckiestGuy
+Title.TextColor3 = Color3.fromRGB(255, 255, 255); Title.TextSize = 24; Title.Font = "LuckiestGuy"
 Title.BackgroundTransparency = 1; Title.Parent = MainFrame
-spawn(function()
-    while wait() do for i = 0, 1, 0.01 do Title.TextColor3 = Color3.fromHSV(i, 0.7, 1); wait(0.04) end end
+task.spawn(function()
+    while task.wait() do for i = 0, 1, 0.01 do Title.TextColor3 = Color3.fromHSV(i, 0.7, 1); task.wait(0.04) end end
 end)
 
 -- --- SCROLLING AREA ---
 local Scroll = Instance.new("ScrollingFrame")
-Scroll.Size = UDim2.new(0.9, 0, 0.7, 0)
-Scroll.Position = UDim2.new(0.05, 0, 0.15, 0)
-Scroll.BackgroundTransparency = 1; Scroll.ScrollBarThickness = 0
-Scroll.CanvasSize = UDim2.new(0, 0, 2.5, 0)
-Scroll.Parent = MainFrame
+Scroll.Size = UDim2.new(0.9, 0, 0.7, 0); Scroll.Position = UDim2.new(0.05, 0, 0.15, 0)
+Scroll.BackgroundTransparency = 1; Scroll.ScrollBarThickness = 0; Scroll.Parent = MainFrame
 Instance.new("UIListLayout", Scroll).Padding = UDim.new(0, 8)
+
+-- --- WIDGET CREATOR ---
+local function CreateWidget(name, color, callback)
+    local W = Instance.new("Frame")
+    W.Size = UDim2.new(0, 150, 0, 80); W.Position = UDim2.new(0.1, 0, 0.4, 0)
+    W.BackgroundColor3 = Color3.fromRGB(25, 25, 35); W.Visible = false; W.Parent = ScreenGui
+    Instance.new("UICorner", W); Instance.new("UIStroke", W).Color = color
+    makeDraggable(W)
+    
+    local T = Instance.new("TextLabel")
+    T.Size = UDim2.new(1, 0, 0, 30); T.Text = name; T.TextColor3 = Color3.fromRGB(255,255,255)
+    T.Font = "FredokaOne"; T.BackgroundTransparency = 1; T.Parent = W
+    
+    local ActionBtn = Instance.new("TextButton")
+    ActionBtn.Size = UDim2.new(0.8, 0, 0, 30); ActionBtn.Position = UDim2.new(0.1, 0, 0.5, 0)
+    ActionBtn.Text = "OFF"; ActionBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+    ActionBtn.TextColor3 = Color3.fromRGB(255,255,255); ActionBtn.Font = "FredokaOne"
+    ActionBtn.Parent = W; Instance.new("UICorner", ActionBtn)
+    
+    local active = false
+    ActionBtn.MouseButton1Click:Connect(function()
+        active = not active
+        ActionBtn.Text = active and "ON" or "OFF"
+        ActionBtn.TextColor3 = active and color or Color3.fromRGB(255, 255, 255)
+        if callback then callback(active) end
+    end)
+    
+    return W
+end
+
+-- --- FONCTIONS GLOBALES ---
+_G.BatSpam = false
+_G.InfJ = false
+_G.AntiRagdoll = false
+_G.Spin = false
+_G.BatAimbot = false
+
+local WidgetL = CreateWidget("AUTO LEFT", Color3.fromRGB(0, 255, 255))
+local WidgetR = CreateWidget("AUTO RIGHT", Color3.fromRGB(0, 255, 255))
+local WidgetAim = CreateWidget("BAT AIMBOT", Color3.fromRGB(255, 50, 50), function(state)
+    _G.BatAimbot = state
+end)
 
 -- --- WIDGET SPEED ---
 local SpeedWidget = Instance.new("Frame")
-SpeedWidget.Size = UDim2.new(0, 160, 0, 100)
-SpeedWidget.Position = UDim2.new(0.8, 0, 0.4, 0)
-SpeedWidget.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-SpeedWidget.Visible = false; SpeedWidget.Parent = ScreenGui
-Instance.new("UICorner", SpeedWidget)
-Instance.new("UIStroke", SpeedWidget).Color = Color3.fromRGB(0, 255, 255)
+SpeedWidget.Size = UDim2.new(0, 170, 0, 110); SpeedWidget.Position = UDim2.new(0.8, 0, 0.4, 0)
+SpeedWidget.BackgroundColor3 = Color3.fromRGB(25, 25, 35); SpeedWidget.Visible = false; SpeedWidget.Parent = ScreenGui
+Instance.new("UICorner", SpeedWidget); Instance.new("UIStroke", SpeedWidget).Color = Color3.fromRGB(0, 255, 255)
 makeDraggable(SpeedWidget)
 
-local function AddSpeedBtn(txt, val)
-    local b = Instance.new("TextButton")
-    b.Size = UDim2.new(0.9, 0, 0, 35); b.Text = txt; b.Font = "FredokaOne"
-    b.BackgroundColor3 = Color3.fromRGB(40,40,60); b.TextColor3 = Color3.fromRGB(255,255,255)
-    b.Parent = SpeedWidget; Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(function() 
-        if Player.Character then Player.Character.Humanoid.WalkSpeed = val end 
-    end)
-end
-Instance.new("UIListLayout", SpeedWidget).HorizontalAlignment = "Center"
-AddSpeedBtn("Regular Speed (30)", 30)
-AddSpeedBtn("Stealing Speed (100)", 100)
+local SpeedInput = Instance.new("TextBox")
+SpeedInput.Size = UDim2.new(0.9, 0, 0, 40); SpeedInput.Position = UDim2.new(0.05, 0, 0.1, 0)
+SpeedInput.PlaceholderText = "Enter Speed..."; SpeedInput.Text = "16"; SpeedInput.Font = "FredokaOne"
+SpeedInput.BackgroundColor3 = Color3.fromRGB(40,40,55); SpeedInput.TextColor3 = Color3.fromRGB(255,255,255)
+SpeedInput.Parent = SpeedWidget; Instance.new("UICorner", SpeedInput)
 
--- --- GUI SIZE BUTTONS (STYLÉES) ---
-local SizeFrame = Instance.new("Frame")
-SizeFrame.Size = UDim2.new(0.9, 0, 0, 40)
-SizeFrame.Position = UDim2.new(0.05, 0, 0.9, 0)
-SizeFrame.BackgroundTransparency = 1; SizeFrame.Parent = MainFrame
+local ApplySpeed = Instance.new("TextButton")
+ApplySpeed.Size = UDim2.new(0.9, 0, 0, 40); ApplySpeed.Position = UDim2.new(0.05, 0, 0.55, 0)
+ApplySpeed.Text = "APPLY SPEED"; ApplySpeed.BackgroundColor3 = Color3.fromRGB(0, 200, 150)
+ApplySpeed.Font = "FredokaOne"; ApplySpeed.Parent = SpeedWidget; Instance.new("UICorner", ApplySpeed)
 
-local SizeLabel = Instance.new("TextLabel")
-SizeLabel.Size = UDim2.new(0.4, 0, 1, 0); SizeLabel.Text = "GUI SIZE"
-SizeLabel.Font = "FredokaOne"; SizeLabel.TextColor3 = Color3.fromRGB(255,255,255)
-SizeLabel.BackgroundTransparency = 1; SizeLabel.Parent = SizeFrame
+ApplySpeed.MouseButton1Click:Connect(function()
+    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid.WalkSpeed = tonumber(SpeedInput.Text) or 16
+    end
+end)
 
-local function CreateSizeBtn(txt, offset, posX)
-    local b = Instance.new("TextButton")
-    b.Size = UDim2.new(0, 50, 0, 30); b.Position = UDim2.new(posX, 0, 0.1, 0)
-    b.Text = txt; b.TextSize = 20; b.Font = "FredokaOne"
-    b.BackgroundColor3 = Color3.fromRGB(255,215,0); b.Parent = SizeFrame
-    Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(function()
-        MainFrame.Size = UDim2.new(0, math.max(250, MainFrame.Size.X.Offset + offset), 0, math.max(200, MainFrame.Size.Y.Offset + offset))
-    end)
-end
-CreateSizeBtn("«", -30, 0.5) -- Moins
-CreateSizeBtn("»", 30, 0.7)  -- Plus
-
--- --- FONCTIONS ---
-_G.BatSpam = false
-_G.InfJ = false
-
-spawn(function()
-    while wait(0.01) do
-        if _G.BatSpam then
-            local tool = Player.Character:FindFirstChildOfClass("Tool")
+-- --- LOGIQUE BAT SPAM & AIMBOT ---
+task.spawn(function()
+    while task.wait(0.05) do
+        local char = Player.Character
+        if not char then continue end
+        
+        -- Fonction pour équiper automatiquement et frapper
+        local function autoEquipAndSwing()
+            local tool = char:FindFirstChildOfClass("Tool")
+            if not tool then
+                -- Cherche la batte dans l'inventaire si elle n'est pas en main
+                tool = Player.Backpack:FindFirstChildOfClass("Tool")
+                if tool and char:FindFirstChild("Humanoid") then
+                    char.Humanoid:EquipTool(tool)
+                end
+            end
             if tool then tool:Activate() end
+        end
+
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        
+        if _G.BatAimbot and hrp then
+            -- Logique de l'Aimbot
+            local closest = nil
+            local minDist = 40 -- Portée maximale de détection
+            
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= Player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                    local dist = (p.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                    if dist < minDist then
+                        minDist = dist
+                        closest = p
+                    end
+                end
+            end
+            
+            if closest then
+                -- Tourne le joueur vers la cible
+                hrp.CFrame = CFrame.new(hrp.Position, Vector3.new(closest.Character.HumanoidRootPart.Position.X, hrp.Position.Y, closest.Character.HumanoidRootPart.Position.Z))
+                -- Frappe automatiquement
+                autoEquipAndSwing()
+            end
+            
+        elseif _G.BatSpam then
+            -- Spam basique sans Aimbot
+            autoEquipAndSwing()
         end
     end
 end)
 
+-- Fix Infinite Jump
 UserInputService.JumpRequest:Connect(function()
-    if _G.InfJ and Player.Character:FindFirstChildOfClass("Humanoid") then
-        Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    if _G.InfJ and Player.Character and Player.Character:FindFirstChildOfClass("Humanoid") then
+        Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
 
+-- Fix Spin Bot
+task.spawn(function()
+    while task.wait() do
+        if _G.Spin and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            Player.Character.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(25), 0)
+        end
+    end
+end)
+
+-- Fix Anti-Ragdoll
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.AntiRagdoll and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+            Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        end
+    end
+end)
+
+-- --- TOGGLE MAKER ---
 local function AddToggle(name, callback)
     local s = false
     local b = Instance.new("TextButton")
@@ -148,28 +220,36 @@ local function AddToggle(name, callback)
     end)
 end
 
--- --- TOUTES LES OPTIONS ---
 AddToggle("Speed Widget", function(v) SpeedWidget.Visible = v end)
 AddToggle("Spam Bat", function(v) _G.BatSpam = v end)
-AddToggle("Bat Aimbot (Widget)", function(v) end)
-AddToggle("Anti Ragdoll", function(v) 
-    if Player.Character then Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, not v) end
-end)
+AddToggle("Bat Aimbot Widget", function(v) WidgetAim.Visible = v end)
+AddToggle("Anti Ragdoll", function(v) _G.AntiRagdoll = v end)
 AddToggle("Infinite Jump", function(v) _G.InfJ = v end)
+AddToggle("Spin Bot", function(v) _G.Spin = v end)
+AddToggle("Auto Left Widget", function(v) WidgetL.Visible = v end)
+AddToggle("Auto Right Widget", function(v) WidgetR.Visible = v end)
 AddToggle("Neon Sky", function(v) 
-    if v then
-        Lighting.Ambient = Color3.fromRGB(255, 0, 255)
-        Lighting.Brightness = 5
-        Lighting.FogEnd = 1000
-    else
-        Lighting.Ambient = Color3.fromRGB(127,127,127)
-        Lighting.Brightness = 1
-    end
+    Lighting.Brightness = v and 4 or 1
+    Lighting.OutdoorAmbient = v and Color3.fromRGB(255,0,255) or Color3.fromRGB(127,127,127)
+    Lighting.ClockTime = v and 0 or 12
 end)
-AddToggle("Auto Right", function(v) end)
-AddToggle("Auto Left", function(v) end)
-AddToggle("Spin Bot", function(v) end)
-AddToggle("Auto Grab / Steal", function(v) end)
+
+-- --- GUI SIZE ---
+local SizeFrame = Instance.new("Frame")
+SizeFrame.Size = UDim2.new(0.9, 0, 0, 40); SizeFrame.Position = UDim2.new(0.05, 0, 0.9, 0)
+SizeFrame.BackgroundTransparency = 1; SizeFrame.Parent = MainFrame
+
+local function CreateSizeBtn(txt, offset, posX)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, 60, 0, 30); b.Position = UDim2.new(posX, 0, 0, 0)
+    b.Text = txt; b.BackgroundColor3 = Color3.fromRGB(255,215,0); b.Parent = SizeFrame
+    b.Font = "FredokaOne"; Instance.new("UICorner", b)
+    b.MouseButton1Click:Connect(function()
+        MainFrame.Size = UDim2.new(0, math.max(250, MainFrame.Size.X.Offset + offset), 0, math.max(200, MainFrame.Size.Y.Offset + offset))
+    end)
+end
+CreateSizeBtn("MOINS", -30, 0.2)
+CreateSizeBtn("PLUS", 30, 0.6)
 
 makeDraggable(MainFrame)
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
