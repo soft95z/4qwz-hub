@@ -1,0 +1,181 @@
+--[[ 
+    4QWZ - PRIVATE DUELS SCRIPT V12
+    Base: 22s Duels (Modified & Optimized)
+    Additions: Desync Tab (Visual), Speed Titles, Running Aimbot
+--]]
+
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local Player = Players.LocalPlayer
+
+-- Nettoyage
+if game:GetService("CoreGui"):FindFirstChild("4qwz_Menu") then 
+    game:GetService("CoreGui"):FindFirstChild("4qwz_Menu"):Destroy() 
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "4qwz_Menu"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ResetOnSpawn = false
+
+-- --- CONFIGURATION ---
+local Enabled = {
+    NormalSpeed = false,
+    AntiRagdoll = true,
+    AutoSteal = false,
+    InfiniteJump = false,
+    BatAimbot = false,
+    DarkNeon = false,
+    SpamBat = false,
+    Desync = false
+}
+
+local Values = {
+    RegularSpeed = 60,
+    StealingSpeed = 30
+}
+
+-- --- ANTI-RAGDOLL ---
+RunService.Stepped:Connect(function()
+    if Enabled.AntiRagdoll then
+        local char = Player.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+                hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+                hum.PlatformStand = false
+            end
+        end
+    end
+end)
+
+-- --- BAT AIMBOT (LOGIC) ---
+local function getNearestEnemy()
+    local nearest, dist = nil, 100
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= Player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local d = (p.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+            if d < dist then dist = d; nearest = p.Character end
+        end
+    end
+    return nearest
+end
+
+task.spawn(function()
+    while task.wait() do
+        if Enabled.BatAimbot or Enabled.SpamBat then
+            local char = Player.Character
+            if char then
+                local tool = char:FindFirstChildOfClass("Tool") or Player.Backpack:FindFirstChildOfClass("Tool")
+                if tool and tool.Name:lower():find("bat") then
+                    if tool.Parent ~= char then char.Humanoid:EquipTool(tool) end
+                    if Enabled.BatAimbot then
+                        local target = getNearestEnemy()
+                        if target then
+                            char.Humanoid:MoveTo(target.HumanoidRootPart.Position)
+                            if (target.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude < 12 then
+                                tool:Activate()
+                            end
+                        end
+                    else
+                        tool:Activate()
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- --- MAIN UI ---
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 400, 0, 520); Main.Position = UDim2.new(0.5, -200, 0.5, -260)
+Main.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
+local Stroke = Instance.new("UIStroke", Main); Stroke.Thickness = 2; Stroke.Color = Color3.fromRGB(255, 255, 255)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 50); Title.Text = "4QWZ DUELS"; Title.TextColor3 = Color3.fromRGB(255, 255, 255); Title.TextSize = 25; Title.BackgroundTransparency = 1; Title.Font = "FredokaOne"
+
+local Scroll = Instance.new("ScrollingFrame", Main)
+Scroll.Size = UDim2.new(1, -20, 1, -80); Scroll.Position = UDim2.new(0, 10, 0, 60); Scroll.BackgroundTransparency = 1; Scroll.ScrollBarThickness = 0
+local Layout = Instance.new("UIListLayout", Scroll); Layout.Padding = UDim.new(0, 8)
+
+-- --- WIDGET HELPERS ---
+local function AddToggle(name, var)
+    local btn = Instance.new("TextButton", Scroll)
+    btn.Size = UDim2.new(1, 0, 0, 40); btn.Text = "○ " .. name; btn.BackgroundColor3 = Color3.fromRGB(25, 25, 30); btn.TextColor3 = Color3.fromRGB(200, 200, 200); btn.Font = "FredokaOne"
+    Instance.new("UICorner", btn)
+    btn.MouseButton1Click:Connect(function()
+        Enabled[var] = not Enabled[var]
+        btn.Text = Enabled[var] and "● " .. name or "○ " .. name
+        btn.TextColor3 = Enabled[var] and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(200, 200, 200)
+    end)
+end
+
+local function AddSoon(name)
+    local btn = Instance.new("TextButton", Scroll)
+    btn.Size = UDim2.new(1, 0, 0, 40); btn.Text = name; btn.BackgroundColor3 = Color3.fromRGB(20, 20, 25); btn.TextColor3 = Color3.fromRGB(255, 255, 255); btn.Font = "FredokaOne"
+    Instance.new("UICorner", btn)
+    btn.MouseButton1Click:Connect(function() btn.Text = "Soon..." end)
+end
+
+-- Speed Widget
+local SpeedFrame = Instance.new("Frame", Scroll); SpeedFrame.Size = UDim2.new(1, 0, 0, 110); SpeedFrame.BackgroundTransparency = 1
+local function CreateLabel(txt, y)
+    local l = Instance.new("TextLabel", SpeedFrame); l.Text = txt; l.Size = UDim2.new(1, 0, 0, 20); l.Position = UDim2.new(0, 0, 0, y); l.TextColor3 = Color3.fromRGB(255, 255, 255); l.BackgroundTransparency = 1; l.Font = "FredokaOne"
+end
+local function CreateBox(val, y, var)
+    local b = Instance.new("TextBox", SpeedFrame); b.Size = UDim2.new(0.9, 0, 0, 25); b.Position = UDim2.new(0.05, 0, 0, y); b.Text = val; b.BackgroundColor3 = Color3.fromRGB(40, 40, 45); b.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Instance.new("UICorner", b)
+    b.FocusLost:Connect(function() Values[var] = tonumber(b.Text) or 16 end)
+end
+
+CreateLabel("Speed Regular", 0); CreateBox("60", 25, "RegularSpeed")
+CreateLabel("Speed Stealing", 55); CreateBox("30", 80, "StealingSpeed")
+
+-- Ajout des options
+AddToggle("Bat Aimbot", "BatAimbot")
+AddToggle("Spam Bat", "SpamBat")
+AddToggle("Anti-Ragdoll", "AntiRagdoll")
+AddToggle("Auto Grab Brainrot", "Grab")
+AddToggle("Infinite Jump", "InfiniteJump")
+AddToggle("Spin Bot", "Spin")
+AddToggle("Dark Neon Sky", "Neon")
+AddSoon("Auto Right")
+AddSoon("Auto Left")
+AddSoon("Desync (BETA)") -- L'onglet Desync demandé
+
+-- --- LOOP ---
+RunService.Heartbeat:Connect(function()
+    local char = Player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        local hrp = char.HumanoidRootPart
+        local hum = char.Humanoid
+        
+        -- WalkSpeed
+        hum.WalkSpeed = Values.RegularSpeed
+        
+        -- Spin
+        if Enabled.Spin then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(25), 0) end
+        
+        -- Neon
+        if Enabled.Neon then Lighting.Ambient = Color3.fromRGB(30, 0, 60) Lighting.ClockTime = 0 end
+    end
+end)
+
+-- Infinite Jump
+UserInputService.JumpRequest:Connect(function()
+    if Enabled.InfiniteJump and Player.Character then Player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end
+end)
+
+-- Drag
+local dragToggle, dragStart, startPos
+Main.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragToggle = true dragStart = input.Position startPos = Main.Position end end)
+UserInputService.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement and dragToggle then local delta = input.Position - dragStart Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragToggle = false end end)
